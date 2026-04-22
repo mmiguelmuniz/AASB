@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design Tokens ─────────────────────────────────── */
+:root {
+  --navy:       #0B1E3D;
+  --navy-light: #162d5a;
+  --red:        #C8102E;
+  --red-dark:   #9e0d24;
+  --gold:       #F4C430;
+  --gold-muted: #d4a820;
+  --light:      #F0F4F8;
+  --white:      #ffffff;
+  --text:       #1a2540;
+  --muted:      #6b7a99;
+  --border:     #dde3ef;
+}
+
+/* ── Base ──────────────────────────────────────────── */
+@layer base {
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply font-body text-[var(--text)] bg-white;
+    margin: 0;
+  }
+
+  h1, h2, h3 { @apply font-heading; }
+}
+
+/* ── Utilities ─────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, var(--red) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-8 lg:px-16 xl:px-24;
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-200 ease-out;
+  }
+  .hover-lift:hover {
+    @apply -translate-y-1;
+  }
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--light); }
+::-webkit-scrollbar-thumb { background: var(--navy); border-radius: 3px; }
