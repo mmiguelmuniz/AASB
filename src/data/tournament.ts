@@ -32,28 +32,28 @@ export const SPORT_CONFIG: Record<SportName, { color: string; bg: string; icon: 
 // ── Participating schools ─────────────────────────────
 // TODO: Update with actual Middle School participants for May 2026
 export const SCHOOLS: School[] = [
-  { id: 'ear',      abbreviation: 'EAR',      name: 'American School of Recife',           city: 'Recife',        mascot: 'Eagles' },
-  { id: 'paca',     abbreviation: 'PACA',     name: 'Pan American Christian Academy',      city: 'São Paulo',     mascot: 'Warriors' },
-  { id: 'eab',      abbreviation: 'EAB',      name: 'American School of Brasília',         city: 'Brasília',      mascot: 'Bulls' },
-  { id: 'earj',     abbreviation: 'EARJ',     name: 'American School of Rio de Janeiro',   city: 'Rio de Janeiro',mascot: 'Panthers' },
-  { id: 'eac',      abbreviation: 'EAC',      name: 'American School of Campinas',         city: 'Campinas',      mascot: 'Giants' },
-  { id: 'eabh',     abbreviation: 'EABH',     name: 'American School of Belo Horizonte',   city: 'Belo Horizonte',mascot: '' },
-  { id: 'chapel',   abbreviation: 'CHAPEL',   name: 'The International School of Brazil',  city: 'Brasília',      mascot: 'Trojans' },
-  { id: 'graded',   abbreviation: 'GRADED',   name: 'The American School of São Paulo',    city: 'São Paulo',     mascot: '' },
-  { id: 'isc',      abbreviation: 'ISC',      name: 'International School of Curitiba',    city: 'Curitiba',      mascot: 'Wildcats' },
-  { id: 'nations',  abbreviation: 'NATIONS',  name: 'The School of Nations',               city: 'Brasília',      mascot: 'Cougars' },
-  { id: 'olm',      abbreviation: 'OLM',      name: 'Our Lady of Mercy American School',   city: 'São Paulo',     mascot: 'Lancers' },
-  { id: 'pasb',     abbreviation: 'PASB',     name: 'Pan American School of Bahia',        city: 'Salvador',      mascot: 'Panthers' },
-  { id: 'paspoa',   abbreviation: 'PASPOA',   name: 'Pan American School of Porto Alegre', city: 'Porto Alegre',  mascot: 'Huskies' },
-  { id: 'santanna', abbreviation: "SANT'ANNA", name: 'International School',               city: 'São Paulo',     mascot: 'Wolves' },
+  { id: 'chapel',   abbreviation: 'CHAPEL',    name: 'The International School of Brazil',   city: 'São Paulo',      mascot: 'Trojans',  logoUrl: '/assets/CHAPEL.png' },
+  { id: 'eab',      abbreviation: 'EAB',       name: 'American School of Brasília',          city: 'Brasília',       mascot: 'Bulls',    logoUrl: '/assets/EAB.png' },
+  { id: 'eabh',     abbreviation: 'EABH',      name: 'American School of Belo Horizonte',    city: 'Belo Horizonte', mascot: '',         logoUrl: '/assets/EABH.png' },
+  { id: 'eac',      abbreviation: 'EAC',       name: 'American School of Campinas',          city: 'Campinas',       mascot: 'Giants',   logoUrl: '/assets/EAC.jpg' },
+  { id: 'ear',      abbreviation: 'EAR',       name: 'American School of Recife',            city: 'Recife',         mascot: 'Eagles',   logoUrl: '/assets/EAR.png' },
+  { id: 'earj',     abbreviation: 'EARJ',      name: 'American School of Rio de Janeiro',    city: 'Rio de Janeiro', mascot: 'Panthers', logoUrl: '/assets/EARJ.png' },
+  { id: 'graded',   abbreviation: 'GRADED',    name: 'The American School of São Paulo',     city: 'São Paulo',      mascot: '',         logoUrl: '/assets/Graded.png' },
+  { id: 'isc',      abbreviation: 'ISC',       name: 'International School of Curitiba',     city: 'Curitiba',       mascot: 'Wildcats', logoUrl: '/assets/ISC.png' },
+  { id: 'nations',  abbreviation: 'NATIONS',   name: 'The School of Nations',                city: 'Brasília',       mascot: 'Cougars',  logoUrl: '/assets/Nations.png' },
+  { id: 'olm',      abbreviation: 'OLM',       name: 'Our Lady of Mercy American School',    city: 'Rio de Janeiro', mascot: 'Lancers',  logoUrl: '/assets/OLM.png' },
+  { id: 'paca',     abbreviation: 'PACA',      name: 'Pan American Christian Academy',       city: 'São Paulo',      mascot: 'Warriors', logoUrl: '/assets/PACA.png' },
+  { id: 'pasb',     abbreviation: 'PASB',      name: 'Pan American School of Bahia',         city: 'Salvador',       mascot: 'Panthers', logoUrl: '/assets/PASB.png' },
+  { id: 'paspoa',   abbreviation: 'PASPOA',    name: 'Pan American School of Porto Alegre',  city: 'Porto Alegre',   mascot: 'Huskies',  logoUrl: '/assets/PASPOA.png' },
+  { id: 'santanna', abbreviation: "SANT'ANNA", name: "Sant'Anna International School",       city: 'São Paulo',      mascot: 'Wolves',   logoUrl: "/assets/Sant'Anna.png" },
 ]
 
 // ── Quick links (home page buttons) ──────────────────
 export const QUICK_LINKS = [
-  { label: 'AASB Athletics Constitution', href: '#', external: true },
-  { label: 'AASB Code of Conduct',        href: '#', external: true },
-  { label: 'Livestream',                  href: '#', external: true },
-  { label: 'Photo Gallery',               href: '#', external: true },
+  { label: 'AASB Athletics Constitution', href: '/info', external: false },
+  { label: 'AASB Code of Conduct',        href: '/code-of-conduct', external: false },
+  { label: 'Livestream',                  href: 'https://www.youtube.com/@nroficial/streams', external: true },
+  { label: 'Photo Gallery',               href: 'https://nr.com.br/diario-de-bordo/', external: true },
 ]
 
 // ── Tournament phases / sports blocks ────────────────

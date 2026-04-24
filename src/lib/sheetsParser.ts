@@ -18,9 +18,38 @@ export const SHEET_GIDS: Record<string, string> = {
   'Cheer Standings':           '208776201',
 }
 
-/** CORS-friendly endpoint — gviz/tq has Access-Control-Allow-Origin: * */
+/** CORS-friendly CSV endpoint */
 export function csvUrl(gid: string): string {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`
+}
+
+/** CORS-friendly JSON endpoint — more reliable for complex sheets */
+export function jsonUrl(gid: string): string {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`
+}
+
+/**
+ * Fetch a sheet as a 2D array using the JSON endpoint.
+ * Much more reliable than CSV for sheets with merged cells or special characters.
+ */
+export async function fetchSheetAsRows(gid: string): Promise<string[][]> {
+  const res = await fetch(jsonUrl(gid), { cache: 'no-store' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const raw = await res.text()
+  // Strip the JSONP wrapper: google.visualization.Query.setResponse({...});
+  const json = raw.replace(/^[^(]*\(/, '').replace(/\);?\s*$/, '')
+  const data = JSON.parse(json)
+  const table = data.table
+  if (!table || !table.rows) return []
+
+  return table.rows.map((row: { c: ({ v: unknown; f?: string } | null)[] }) =>
+    (row?.c ?? []).map((cell) => {
+      if (!cell || cell.v === null || cell.v === undefined) return ''
+      // Use formatted value if available, otherwise raw value
+      const val = cell.f ?? cell.v
+      return String(val).trim()
+    })
+  )
 }
 
 // ── Date detection ────────────────────────────────────
@@ -74,34 +103,53 @@ function toScore(val: string): number | null {
   return isNaN(n) ? null : n
 }
 
-// ── RFC-4180 CSV parser ───────────────────────────────
+// ── CSV parser ───────────────────────────────────────
+// Google gviz/tq wraps each line with outer quotes and escapes inner quotes with backslash:
+//   actual line in memory: "\"Group B\",\"\",..."
+//   i.e.: outer-quote + backslash+quote + content + backslash+quote + outer-quote
+//
+// Fix: strip outer quotes + replace every \" with "  -> standard CSV line
 export function parseCsv(raw: string): string[][] {
+  // Normalize line endings
+  const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const lines = normalized.split('\n')
   const rows: string[][] = []
-  let row: string[] = []
-  let field = ''
-  let inQ = false
-  let i = 0
-  const s = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
-  while (i < s.length) {
-    const ch = s[i]
-    if (inQ) {
-      if (ch === '"') {
-        if (s[i + 1] === '"') { field += '"'; i += 2; continue }
-        inQ = false; i++; continue
+  for (const line of lines) {
+    if (!line.trim()) continue
+
+    // The gviz endpoint mixes formats:
+    // Format A: "\"field1\",\"field2\"" — whole line wrapped in outer quotes, inner escaped with backslash
+    // Format B: "\"SATURDAY" — partial wrap
+    // Format C: "MAY 2\",\"17:00\"..." — no outer wrap, backslash-escaped quotes
+    // Format D: standard CSV "field1","field2"
+    //
+    // Universal fix: replace every backslash+quote with just quote, then parse as standard CSV
+    const normalized_line = line.replace(/\\"/g, '"')
+
+    // Now parse as standard RFC-4180 CSV
+    const row: string[] = []
+    let field = ''
+    let inQ = false
+    let i = 0
+
+    while (i < normalized_line.length) {
+      const ch = normalized_line[i]
+      if (inQ) {
+        if (ch === '"') {
+          if (normalized_line[i + 1] === '"') { field += '"'; i += 2; continue }
+          inQ = false; i++; continue
+        }
+        field += ch; i++; continue
       }
-      if (ch === '\n' || (ch === '\\' && s[i + 1] === 'n')) {
-        field += ' '; i += (ch === '\\' ? 2 : 1); continue
-      }
-      field += ch; i++; continue
+      if (ch === '"') { inQ = true; i++; continue }
+      if (ch === ',') { row.push(field.trim()); field = ''; i++; continue }
+      field += ch; i++
     }
-    if (ch === '"')  { inQ = true; i++; continue }
-    if (ch === ',')  { row.push(field.trim()); field = ''; i++; continue }
-    if (ch === '\n') { row.push(field.trim()); rows.push(row); row = []; field = ''; i++; continue }
-    field += ch; i++
+    row.push(field.trim())
+    if (row.some(Boolean)) rows.push(row)
   }
-  row.push(field.trim())
-  if (row.some(Boolean)) rows.push(row)
+
   return rows
 }
 
@@ -123,8 +171,13 @@ function c(row: string[], idx: number): string {
 // IMPORTANT: col19 is volleyball TOTAL POINTS (not futsal score!)
 // Never read col19 as a futsal score.
 
+/** Parse schedule from CSV text (kept for reference) */
 export function parseScheduleCsv(csv: string, week: 1 | 2): Game[] {
-  const rows  = parseCsv(csv)
+  return parseScheduleRows(parseCsv(csv), week)
+}
+
+/** Parse schedule directly from a 2D array of strings (from JSON endpoint) */
+export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
   const games: Game[] = []
   let dateA = ''
   let dateB = ''

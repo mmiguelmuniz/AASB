@@ -28,18 +28,43 @@ export default function Navbar() {
 
   return (
     <header className={navBg}>
-      <div className="section-padding max-w-7xl mx-auto flex items-center justify-between h-16 lg:h-20">
+      <div className="section-padding max-w-7xl mx-auto flex items-center justify-between h-16 sm:h-18 lg:h-22 py-2">
 
         {/* Logo / Brand */}
-        <NavLink to="/" className="flex items-center gap-3 group">
-          {/* Placeholder circle — swap with <img src="/logo.png" /> when available */}
-          <div className="w-10 h-10 rounded-full bg-[var(--gold)] flex items-center justify-center font-display text-[var(--navy)] text-lg leading-none">
+        <NavLink to="/" className="flex items-center gap-2 sm:gap-3 group">
+          {/* Logo — sem recorte, tamanho generoso */}
+          <img
+            src="/assets/photo.png"
+            alt="AASB Logo"
+            className="
+              h-10 sm:h-12 lg:h-16
+              w-auto
+              object-contain
+              group-hover:scale-105
+              transition-transform duration-200
+            "
+            onError={e => {
+              e.currentTarget.style.display = 'none'
+              const fb = e.currentTarget.nextElementSibling as HTMLElement
+              if (fb) fb.style.display = 'flex'
+            }}
+          />
+          {/* Fallback se imagem falhar */}
+          <div
+            className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-[var(--gold)] items-center justify-center font-display text-[var(--navy)] text-xl leading-none flex-shrink-0"
+            style={{ display: 'none' }}
+          >
             A
           </div>
-          <span className="hidden sm:block font-heading font-semibold text-white text-sm leading-tight">
-            AASB<br />
-            <span className="text-[var(--gold)] font-light tracking-wider text-xs">Middle School</span>
-          </span>
+          {/* Texto ao lado — visível em todos os tamanhos */}
+          <div className="flex flex-col leading-tight">
+            <span className="font-display text-white text-base sm:text-lg lg:text-2xl tracking-widest">
+              AASB
+            </span>
+            <span className="font-heading text-[var(--gold)] font-light tracking-[0.15em] text-[10px] sm:text-xs uppercase">
+              Middle School
+            </span>
+          </div>
         </NavLink>
 
         {/* Desktop nav */}

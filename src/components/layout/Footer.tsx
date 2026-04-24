@@ -56,6 +56,18 @@ export default function Footer() {
           <p>© 2026 AASB Middle School National Tournament. All rights reserved.</p>
           <p>Association of American Schools in Brazil</p>
         </div>
+
+        {/* Developer credits */}
+        <div className="border-t border-white/5 mt-4 pt-4 flex items-center justify-center gap-2 text-xs text-white/25">
+          <p>
+            ⚙️ Developed by{' '}
+            <span className="text-white/40 font-semibold">Miguel Muniz</span>
+            {' · '}
+            <span className="text-white/40">IT Team</span>
+            {' · '}
+            <span className="text-white/40">American School of Recife</span>
+          </p>
+        </div>
       </div>
     </footer>
   )

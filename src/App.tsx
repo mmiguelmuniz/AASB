@@ -6,9 +6,13 @@ import SchedulePage from '@/pages/SchedulePage'
 import StandingsPage from '@/pages/StandingsPage'
 import InfoPage from '@/pages/InfoPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import CodeOfConductPage from '@/pages/CodeOfConductPage'
+import ScrollToTop from '@/components/layout/ScrollToTop'
 
 export default function App() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       <Route element={<Layout />}>
         <Route index            element={<HomePage />} />
@@ -16,8 +20,10 @@ export default function App() {
         <Route path="schedule"  element={<SchedulePage />} />
         <Route path="standings" element={<StandingsPage />} />
         <Route path="info"      element={<InfoPage />} />
+        <Route path="code-of-conduct" element={<CodeOfConductPage />} />
         <Route path="*"         element={<NotFoundPage />} />
       </Route>
     </Routes>
+    </>
   )
 }

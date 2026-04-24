@@ -1,17 +1,9 @@
-/**
- * useSchedule
- *
- * Fetches game data live from the public Google Sheets via CSV export.
- * Falls back to static local data if the fetch fails.
- * Auto-refreshes every 60 seconds.
- */
-
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Game } from '@/types'
-import { csvUrl, parseScheduleCsv, SHEET_GIDS } from '@/lib/sheetsParser'
+import { fetchSheetAsRows, parseScheduleRows, SHEET_GIDS } from '@/lib/sheetsParser'
 import { FALLBACK_GAMES } from '@/data/fallbackGames'
 
-const REFRESH_MS = 30_000  // re-fetch every 30 seconds
+const REFRESH_MS = 30_000
 
 export type FetchStatus = 'idle' | 'loading' | 'live' | 'fallback' | 'error'
 
@@ -23,10 +15,9 @@ export interface UseScheduleReturn {
 }
 
 async function fetchWeek(gid: string, week: 1 | 2): Promise<Game[]> {
-  const res = await fetch(csvUrl(gid), { cache: 'no-store' })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const csv = await res.text()
-  return parseScheduleCsv(csv, week)
+  if (gid === 'REPLACE_WITH_CORRECT_GID') return []
+  const rows = await fetchSheetAsRows(gid)
+  return parseScheduleRows(rows, week)
 }
 
 export function useSchedule(): UseScheduleReturn {
@@ -47,7 +38,6 @@ export function useSchedule(): UseScheduleReturn {
       ])
 
       const all = [...week1, ...week2]
-
       if (all.length === 0) throw new Error('No games parsed from sheet')
 
       setGames(all)
@@ -64,10 +54,7 @@ export function useSchedule(): UseScheduleReturn {
     }
   }, [])
 
-  // Initial fetch
   useEffect(() => { fetchAll() }, [fetchAll])
-
-  // Periodic refresh
   useEffect(() => {
     const id = setInterval(fetchAll, REFRESH_MS)
     return () => clearInterval(id)
