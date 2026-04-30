@@ -6,10 +6,12 @@ import type { SportStandings, StandingEntry } from '@/lib/standingsParser'
 import type { SportName } from '@/types'
 import { SPORT_CONFIG } from '@/data/tournament'
 import clsx from 'clsx'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 const SPORT_TABS: SportName[] = [
   'Boys Futsal', 'Girls Futsal',
   'Girls Volleyball', 'Boys Volleyball',
+  'Cheerleading',
 ]
 
 export default function StandingsPage() {
@@ -51,15 +53,22 @@ export default function StandingsPage() {
 
       <div className="section-padding max-w-7xl mx-auto py-10">
         {status === 'loading' && !current && (
-          <div className="flex items-center justify-center py-24">
-            <div className="text-center">
-              <div className="w-8 h-8 border-2 border-[var(--navy)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="font-heading text-[var(--muted)]">Loading standings…</p>
-            </div>
+          <div className="flex justify-center py-24">
+            <LoadingSpinner size="lg" label="Loading standings…" />
           </div>
         )}
+
+        {status === 'fallback' && !current && (
+          <div className="text-center py-24">
+            <p className="text-4xl mb-3">📡</p>
+            <p className="font-heading text-xl text-[var(--navy)] mb-2">Could not connect to Google Sheets</p>
+            <p className="text-sm text-[var(--muted)]">Check your connection and try refreshing.</p>
+          </div>
+        )}
+
         {current && <SportStandingsView standing={current} />}
-        {!current && status !== 'loading' && (
+
+        {!current && status === 'live' && (
           <div className="text-center py-24 text-[var(--muted)]">
             <p className="text-4xl mb-3">📊</p>
             <p className="font-heading text-xl text-[var(--navy)]">No standings yet</p>
@@ -75,6 +84,7 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
   const cfg      = SPORT_CONFIG[standing.sport]
   const isFutsal = standing.sport.includes('Futsal')
 
+
   return (
     <div className="space-y-8">
       {standing.groups.map((group) => (
@@ -82,17 +92,19 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center font-display text-white text-lg"
               style={{ background: cfg.color }}>
-              {group.group}
+              {group.group === 'Overall' ? '🏆' : group.group}
             </div>
             <h3 className="font-heading font-bold text-[var(--navy)] text-xl">
-              {group.group === 'RR' ? 'Round Robin' : `Group ${group.group}`}
+              {group.group === 'RR' ? 'Round Robin'
+                : group.group === 'Overall' ? 'Cheerleading Routine Competition'
+                : `Group ${group.group}`}
             </h3>
             <div className="flex-1 h-px bg-[var(--border)]" />
           </div>
 
           <div className="bg-white rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
                 <thead>
                   <tr className="bg-[var(--light)] border-b border-[var(--border)]">
                     <th className="text-left px-4 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider w-8">#</th>
@@ -107,6 +119,8 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
                         <th className="text-center px-3 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider hidden sm:table-cell">GA</th>
                         <th className="text-center px-3 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider">GD</th>
                       </>
+                    ) : standing.sport === 'Cheerleading' ? (
+                      <th className="text-center px-3 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider">Standing</th>
                     ) : (
                       <>
                         <th className="text-center px-3 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider">GP</th>
@@ -122,7 +136,8 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
                 <tbody>
                   {group.entries.map((entry, i) => (
                     <StandingRow key={entry.school + i} entry={entry} position={i + 1}
-                      isFutsal={isFutsal} accentColor={cfg.color} total={group.entries.length} />
+                      isFutsal={isFutsal} accentColor={cfg.color} total={group.entries.length}
+                      sport={standing.sport} />
                   ))}
                 </tbody>
               </table>
@@ -134,8 +149,8 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
   )
 }
 
-function StandingRow({ entry, position, isFutsal, accentColor, total }: {
-  entry: StandingEntry; position: number; isFutsal: boolean; accentColor: string; total: number
+function StandingRow({ entry, position, isFutsal, accentColor, total, sport }: {
+  entry: StandingEntry; position: number; isFutsal: boolean; accentColor: string; total: number; sport: string
 }) {
   const isTop2 = position <= 2
   const isLast = position === total
@@ -168,6 +183,12 @@ function StandingRow({ entry, position, isFutsal, accentColor, total }: {
           <td className="px-3 py-3 text-center font-body text-sm text-[var(--muted)] hidden sm:table-cell">{entry.goalsAgainst ?? '—'}</td>
           <td className="px-3 py-3 text-center font-body text-sm font-semibold"><GoalDiff value={entry.goalDiff} /></td>
         </>
+      ) : sport === 'Cheerleading' ? (
+        <td className="px-3 py-3 text-center">
+          {entry.place
+            ? <span className="font-heading text-xs font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{entry.place}</span>
+            : <span className="text-[var(--muted)]">—</span>}
+        </td>
       ) : (
         <>
           <td className="px-3 py-3 text-center font-body text-sm text-[var(--muted)]">{entry.gp ?? '—'}</td>

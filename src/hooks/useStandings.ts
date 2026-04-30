@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   fetchFutsalStandings,
   fetchVolleyballStandings,
+  fetchCheerStandings,
   type SportStandings,
 } from '@/lib/standingsParser'
 
@@ -36,6 +37,7 @@ export function useStandings(): UseStandingsReturn {
         fetchFutsalStandings('Girls Futsal'),
         fetchVolleyballStandings('Girls Volleyball'),
         fetchVolleyballStandings('Boys Volleyball'),
+        fetchCheerStandings(),
       ])
       setStandings(results)
       setStatus('live')

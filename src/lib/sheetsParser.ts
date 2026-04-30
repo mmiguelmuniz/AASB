@@ -1,21 +1,19 @@
 import type { Game, SportName, GamePhase } from '@/types'
 
-export const SHEET_ID = '1VNomje-0_TvX-3dHDTsPGm-qWvPtNo5K61x9dz1loTA'
+export const SHEET_ID = '16DocV3VnS8q2xjKNjGpFp_XdLVsFzF0jpOXAravsvQ0'
 
-// ⚠️ Each key MUST have the correct gid from the URL when that tab is open
-// e.g. https://docs.google.com/spreadsheets/d/.../edit#gid=XXXXXXX
 export const SHEET_GIDS: Record<string, string> = {
   // ── Game Schedules ──────────────────────────────
-  'Games Schedule May 2-5':    '137797463',
-  'Games Schedule May 5-8':    '1840893406',
+  'Games Schedule May 2-5':     '801046013',
+  'Games Schedule May 5-8':     '1233264069',
   // ── Standings ───────────────────────────────────
-  'Boys Futsal Standings':     '754907321',
-  'Girls Volleyball Standings':'1750726555',
-  'Girls Futsal Standings':    '1354386285',
-  'Boys Volleyball Standings': '1845559618',
+  'Boys Futsal Standings':      '513132305',
+  'Girls Futsal Standings':     '467172856',
+  'Girls Volleyball Standings': '1001433234',
+  'Boys Volleyball Standings':  '63920135',
   // ── Cheerleading ────────────────────────────────
-  'Cheer Schedule':            '1114891054',
-  'Cheer Standings':           '208776201',
+  'Cheer Schedule':             '1114891054',
+  'Cheer Standings':            '1923289058',
 }
 
 /** CORS-friendly CSV endpoint */
@@ -47,7 +45,7 @@ export async function fetchSheetAsRows(gid: string): Promise<string[][]> {
       if (!cell || cell.v === null || cell.v === undefined) return ''
       // Use formatted value if available, otherwise raw value
       const val = cell.f ?? cell.v
-      return String(val).trim()
+      return String(val).replace(/\n/g, ' ').trim()
     })
   )
 }
@@ -183,6 +181,8 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
   let dateB = ''
   let idx   = 0
 
+  // Week 1 (May 2-5): Boys Futsal (Blue/Red Gym) + Girls Volleyball (Court 1/2)
+  // Week 2 (May 5-8): Girls Futsal (Blue/Red Gym) + Boys Volleyball (Court 1/2)
   const sportA: SportName = week === 1 ? 'Boys Futsal'      : 'Girls Futsal'
   const sportB: SportName = week === 1 ? 'Girls Volleyball' : 'Boys Volleyball'
 
@@ -194,7 +194,7 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
     if (dB) dateB = dB
 
     const timeA = c(row, 1)
-    const timeB = c(row, 16)
+    const timeB = c(row, 16) || c(row, 1)  // col16 for BV, fallback to col1
     const okA   = /^\d{1,2}:\d{2}$/.test(timeA)
     const okB   = /^\d{1,2}:\d{2}$/.test(timeB)
 
@@ -235,42 +235,74 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
       }
     }
 
-    // ── Sport B — Court 1 ─────────────────────────────
-    // cols: group=17, team1=18, [T=19 IGNORE], sets1=23, [x=24], sets2=25, team2=30
+    // ── Sport B columns differ by week ───────────────────────────
+    // Week 1 Girls Volleyball: group=17, team1=18, x=24, team2=30 | Court2: group=32, team1=33, x=39, team2=45
+    // Week 2 Boys Volleyball:  team1=17, x=23, team2=29           | Court2: team1=31, x=37, team2=43
     const useDateB = dateB || dateA
     const useTimeB = okB ? timeB : (okA ? timeA : '')
 
     if (useTimeB && useDateB) {
-      const g1     = c(row, 17)
-      const t1c1   = c(row, 18), t2c1 = c(row, 30)
-      const hasXc1 = c(row, 24).toLowerCase() === 'x'
-      const sw1c1  = hasXc1 ? toScore(c(row, 23)) : null
-      const sw2c1  = hasXc1 ? toScore(c(row, 25)) : null
-
-      if (isTeam(t1c1) && isTeam(t2c1)) {
-        games.push({
-          id: `${sportB}-C1-${useDateB}-${useTimeB}-${idx++}`,
-          sport: sportB, date: useDateB, time: useTimeB,
-          venue: 'Court 1', group: g1, phase: resolvePhase(g1),
-          team1: t1c1, team2: t2c1, score1: sw1c1, score2: sw2c1,
-        })
-      }
-
-      // ── Sport B — Court 2 ───────────────────────────
-      // cols: group=32, team1=33, sets1=38, [x=39], sets2=40, team2=45
-      const g2     = c(row, 32)
-      const t1c2   = c(row, 33), t2c2 = c(row, 45)
-      const hasXc2 = c(row, 39).toLowerCase() === 'x'
-      const sw1c2  = hasXc2 ? toScore(c(row, 38)) : null
-      const sw2c2  = hasXc2 ? toScore(c(row, 40)) : null
-
-      if (isTeam(t1c2) && isTeam(t2c2)) {
-        games.push({
-          id: `${sportB}-C2-${useDateB}-${useTimeB}-${idx++}`,
-          sport: sportB, date: useDateB, time: useTimeB,
-          venue: 'Court 2', group: g2, phase: resolvePhase(g2),
-          team1: t1c2, team2: t2c2, score1: sw1c2, score2: sw2c2,
-        })
+      if (week === 1) {
+        // ── Girls Volleyball ─────────────────────────
+        const g1   = c(row, 17), t1c1 = c(row, 18), t2c1 = c(row, 30)
+        const hasXc1 = c(row, 24).toLowerCase() === 'x'
+        if (isTeam(t1c1) && isTeam(t2c1)) {
+          games.push({
+            id: `${sportB}-C1-${useDateB}-${useTimeB}-${idx++}`,
+            sport: sportB, date: useDateB, time: useTimeB,
+            venue: 'Court 1', group: g1, phase: resolvePhase(g1),
+            team1: t1c1, team2: t2c1,
+            score1: hasXc1 ? toScore(c(row, 23)) : null,
+            score2: hasXc1 ? toScore(c(row, 25)) : null,
+          })
+        }
+        const g2   = c(row, 32), t1c2 = c(row, 33), t2c2 = c(row, 45)
+        const hasXc2 = c(row, 39).toLowerCase() === 'x'
+        if (isTeam(t1c2) && isTeam(t2c2)) {
+          games.push({
+            id: `${sportB}-C2-${useDateB}-${useTimeB}-${idx++}`,
+            sport: sportB, date: useDateB, time: useTimeB,
+            venue: 'Court 2', group: g2, phase: resolvePhase(g2),
+            team1: t1c2, team2: t2c2,
+            score1: hasXc2 ? toScore(c(row, 38)) : null,
+            score2: hasXc2 ? toScore(c(row, 40)) : null,
+          })
+        }
+      } else {
+        // ── Boys Volleyball ───────────────────────────
+        // Confirmed from browser console:
+        // Court 1: time=16, group=17, team1=18, x=24, SETS1=23, SETS2=25, team2=30
+        // Court 2: group=32, team1=33, x=39, SETS1=38, SETS2=40, team2=45
+        const grpC1 = c(row, 17)
+        const t1c1  = c(row, 18), t2c1 = c(row, 30)
+        const hasXc1 = c(row, 24).toLowerCase() === 'x'
+        const sets1c1 = toScore(c(row, 23)), sets2c1 = toScore(c(row, 25))
+        const hasScoreC1 = hasXc1 && (sets1c1 !== null && sets1c1 > 0 || sets2c1 !== null && sets2c1 > 0)
+        if (isTeam(t1c1) && isTeam(t2c1)) {
+          games.push({
+            id: `${sportB}-C1-${useDateB}-${useTimeB}-${idx++}`,
+            sport: sportB, date: useDateB, time: useTimeB,
+            venue: 'Court 1', group: grpC1 || 'Round Robin', phase: resolvePhase(grpC1),
+            team1: t1c1, team2: t2c1,
+            score1: hasScoreC1 ? sets1c1 : null,
+            score2: hasScoreC1 ? sets2c1 : null,
+          })
+        }
+        const grpC2 = c(row, 32)
+        const t1c2  = c(row, 33), t2c2 = c(row, 45)
+        const hasXc2 = c(row, 39).toLowerCase() === 'x'
+        const sets1c2 = toScore(c(row, 38)), sets2c2 = toScore(c(row, 40))
+        const hasScoreC2 = hasXc2 && (sets1c2 !== null && sets1c2 > 0 || sets2c2 !== null && sets2c2 > 0)
+        if (isTeam(t1c2) && isTeam(t2c2)) {
+          games.push({
+            id: `${sportB}-C2-${useDateB}-${useTimeB}-${idx++}`,
+            sport: sportB, date: useDateB, time: useTimeB,
+            venue: 'Court 2', group: grpC2 || 'Round Robin', phase: resolvePhase(grpC2),
+            team1: t1c2, team2: t2c2,
+            score1: hasScoreC2 ? sets1c2 : null,
+            score2: hasScoreC2 ? sets2c2 : null,
+          })
+        }
       }
     }
   }

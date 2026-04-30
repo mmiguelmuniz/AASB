@@ -6,7 +6,7 @@ export const TOURNAMENT: TournamentInfo = {
   edition: '2026',
   startDate: '2026-05-02',
   endDate: '2026-05-08',
-  location: 'NR — Brasília, Brazil',
+  location: 'Acampamento Nosso Recanto, MG',
   hosts: ['EAR', 'PACA'],
 }
 
@@ -65,7 +65,7 @@ export const SPORT_BLOCKS = [
   },
   {
     dates: 'May 5 – 8, 2026',
-    sports: ['Girls Futsal', 'Boys Volleyball', 'Softball'],
+    sports: ['Girls Futsal', 'Boys Volleyball'],
     scheduleHref: '/schedule?week=2',
   },
 ]

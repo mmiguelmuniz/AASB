@@ -9,7 +9,6 @@ const SPORTS_INFO: { sport: SportName; description: string }[] = [
   { sport: 'Girls Futsal',     description: 'Fast-paced indoor football. Group stage + knockout rounds.' },
   { sport: 'Boys Volleyball',  description: 'Sets system. Groups of 4 teams followed by playoffs.' },
   { sport: 'Girls Volleyball', description: 'Sets system. Groups of 4 teams followed by playoffs.' },
-  { sport: 'Softball',         description: 'Round-robin format across all participating schools.' },
   { sport: 'Cheerleading',     description: 'Routine competition judged on technique, creativity and sync.' },
 ]
 
@@ -20,7 +19,7 @@ export default function SportsSection() {
         <SectionHeader
           eyebrow="Competing Sports"
           title="Six Sports, One Tournament"
-          subtitle="Schools compete across six disciplines over seven intense days of competition."
+          subtitle="Schools compete across five disciplines over seven intense days of competition."
           className="mb-12"
         />
 

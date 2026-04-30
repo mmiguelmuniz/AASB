@@ -147,8 +147,8 @@ export default function HeroSection() {
             {/* Stats strip */}
             <div className="grid grid-cols-3 gap-3 mt-2">
               {[
-                { n: '14+', label: 'Schools' },
-                { n: '6',   label: 'Sports' },
+                { n: '13',  label: 'Schools' },
+                { n: '5',   label: 'Sports' },
                 { n: '7',   label: 'Days' },
               ].map(({ n, label }) => (
                 <div

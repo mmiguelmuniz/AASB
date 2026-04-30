@@ -16,7 +16,7 @@ export default function Footer() {
               {TOURNAMENT.name}
             </p>
             <p className="text-sm mt-1 text-[var(--gold)]">
-              {TOURNAMENT.startDate.slice(5).replace('-', '/')} — {TOURNAMENT.endDate.slice(5).replace('-', '/')} · {TOURNAMENT.location}
+              May 2–8, 2026 · {TOURNAMENT.location}
             </p>
             <p className="text-xs mt-3">
               Hosted by <span className="text-white font-medium">EAR</span> &amp; <span className="text-white font-medium">PACA</span>
