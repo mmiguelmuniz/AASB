@@ -147,13 +147,19 @@ function SchoolModal({ school, onClose }: { school: School; onClose: () => void 
 
   // Filter games for this school
   const schoolGames = useMemo(() => {
-    const abbr = school.abbreviation.toLowerCase()
-    return games.filter(g =>
-      g.team1.toLowerCase().includes(abbr) ||
-      g.team2.toLowerCase().includes(abbr) ||
-      g.team1.toLowerCase().replace(/\s+/g, '').includes(abbr.replace(/\s+/g, '')) ||
-      g.team2.toLowerCase().replace(/\s+/g, '').includes(abbr.replace(/\s+/g, ''))
-    ).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+    const abbr = school.abbreviation.toLowerCase().trim()
+
+    // Match team name exactly or with suffix (e.g. "EAR" matches "EAR" and "EAR B" but NOT "EARJ")
+    const matchesTeam = (team: string) => {
+      const t = team.toLowerCase().trim()
+      return t === abbr ||                          // exact: "ear" === "ear"
+             t.startsWith(abbr + ' ') ||            // with suffix: "ear b"
+             t.startsWith(abbr + '-')               // with dash: "ear-b"
+    }
+
+    return games
+      .filter(g => matchesTeam(g.team1) || matchesTeam(g.team2))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
   }, [games, school])
 
   // Close on Escape
@@ -303,7 +309,9 @@ function SchoolModal({ school, onClose }: { school: School; onClose: () => void 
                     </p>
                     <div className="space-y-2">
                       {dayGames.map(game => {
-                        const isTeam1 = game.team1.toLowerCase().includes(school.abbreviation.toLowerCase())
+                        const abbr3 = school.abbreviation.toLowerCase().trim()
+                        const gt1 = game.team1.toLowerCase().trim()
+                        const isTeam1 = gt1 === abbr3 || gt1.startsWith(abbr3 + ' ') || gt1.startsWith(abbr3 + '-')
                         const opponent = isTeam1 ? game.team2 : game.team1
                         const myScore = isTeam1 ? game.score1 : game.score2
                         const oppScore = isTeam1 ? game.score2 : game.score1

@@ -6,6 +6,7 @@ import SportBadge from '@/components/ui/SportBadge'
 import SectionHeader from '@/components/ui/SectionHeader'
 import type { Game, SportName, GamePhase } from '@/types'
 import clsx from 'clsx'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 const ALL_SPORTS: SportName[] = [
   'Boys Futsal', 'Girls Futsal',
@@ -48,7 +49,6 @@ export default function SchedulePage() {
   const [search,      setSearch]      = useState('')
   const [activeSport, setActiveSport] = useState<SportName | 'all'>('all')
   const [activeDay,   setActiveDay]   = useState<string>('all')
-
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return games.filter((g) => {
@@ -124,6 +124,7 @@ export default function SchedulePage() {
               </Pill>
             ))}
           </div>
+
         </div>
       </div>
 
@@ -135,7 +136,21 @@ export default function SchedulePage() {
       </div>
 
       <div className="section-padding max-w-7xl mx-auto pb-20 space-y-10">
-        {byDay.length === 0 && status !== 'loading' && (
+        {status === 'loading' && byDay.length === 0 && (
+          <div className="flex justify-center py-24">
+            <LoadingSpinner size="lg" label="Loading schedule…" />
+          </div>
+        )}
+
+        {status === 'fallback' && byDay.length === 0 && (
+          <div className="text-center py-24">
+            <p className="text-4xl mb-3">📡</p>
+            <p className="font-heading text-xl text-[var(--navy)] mb-2">Could not connect to Google Sheets</p>
+            <p className="text-sm text-[var(--muted)]">Showing cached data. Check your connection and try refreshing.</p>
+          </div>
+        )}
+
+        {byDay.length === 0 && status === 'live' && (
           <div className="text-center py-24 text-[var(--muted)]">
             <p className="text-4xl mb-3">🔍</p>
             <p className="font-heading text-xl text-[var(--navy)]">No games found</p>
@@ -173,27 +188,34 @@ function GameCard({ game }: { game: Game }) {
   const winner = scoreText ? getWinner(game) : null
 
   return (
-    <div className="bg-white rounded-xl border border-[var(--border)] px-4 py-3 flex flex-wrap items-center gap-3 hover:shadow-md transition-shadow">
-      <span className="font-heading text-base font-semibold text-[var(--red)] w-12 flex-shrink-0">{game.time}</span>
-      <SportBadge sport={game.sport} className="hidden sm:inline-flex" />
-      <div className="flex-1 flex items-center gap-3 min-w-0">
-        <span className={clsx('font-heading font-semibold text-sm truncate', winner === 1 ? 'text-[var(--navy)]' : 'text-[var(--text)]')}>
+    <div className="bg-white rounded-xl border border-[var(--border)] px-3 py-3 hover:shadow-md transition-shadow">
+      {/* Top row: time + sport badge + venue + group */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <span className="font-heading text-sm font-semibold text-[var(--red)] flex-shrink-0 w-12">{game.time}</span>
+        <SportBadge sport={game.sport} className="flex-shrink-0" />
+        <div className="flex items-center gap-1 ml-auto">
+          <span className="font-body text-xs text-[var(--muted)]">{game.venue}</span>
+          {game.group && <><span className="text-[var(--border)] text-xs">·</span><span className="font-body text-xs text-[var(--muted)]">Grp {game.group}</span></>}
+        </div>
+      </div>
+      {/* Matchup row */}
+      <div className="flex items-center gap-2">
+        <span className={clsx('font-heading font-semibold text-sm flex-1 truncate', winner === 1 ? 'text-[var(--navy)]' : 'text-[var(--text)]')}>
           {winner === 1 && <span className="text-[var(--gold)] mr-1">★</span>}{game.team1}
         </span>
         <div className="flex-shrink-0">
           {scoreText
-            ? <span className="font-heading font-bold text-[var(--navy)] text-sm px-2 py-0.5 bg-[var(--light)] rounded">{scoreText}</span>
-            : <span className="font-body text-xs text-[var(--muted)] px-2">vs</span>
+            ? <span className="font-heading font-bold text-[var(--navy)] text-sm px-2 py-0.5 bg-[var(--light)] rounded whitespace-nowrap">{scoreText}</span>
+            : <span className="font-body text-xs text-[var(--muted)]">vs</span>
           }
         </div>
-        <span className={clsx('font-heading font-semibold text-sm truncate', winner === 2 ? 'text-[var(--navy)]' : 'text-[var(--text)]')}>
-          {winner === 2 && <span className="text-[var(--gold)] mr-1">★</span>}{game.team2}
+        <span className={clsx('font-heading font-semibold text-sm flex-1 truncate text-right', winner === 2 ? 'text-[var(--navy)]' : 'text-[var(--text)]')}>
+          {game.team2}{winner === 2 && <span className="text-[var(--gold)] ml-1">★</span>}
         </span>
       </div>
-      <div className="flex items-center gap-2 ml-auto flex-shrink-0">
-        <span className="font-body text-xs text-[var(--muted)]">{game.venue}</span>
-        {game.group && <><span className="text-[var(--border)]">·</span><span className="font-body text-xs text-[var(--muted)]">Grp {game.group}</span></>}
-        <span className={clsx('hidden sm:inline text-xs px-2 py-0.5 rounded-full font-body', PHASE_STYLE[game.phase])}>{game.phase}</span>
+      {/* Phase badge */}
+      <div className="mt-1.5">
+        <span className={clsx('text-xs px-2 py-0.5 rounded-full font-body', PHASE_STYLE[game.phase])}>{game.phase}</span>
       </div>
     </div>
   )

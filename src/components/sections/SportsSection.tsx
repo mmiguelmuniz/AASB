@@ -18,8 +18,8 @@ export default function SportsSection() {
       <div className="section-padding max-w-7xl mx-auto">
         <SectionHeader
           eyebrow="Competing Sports"
-          title="Six Sports, One Tournament"
-          subtitle="Schools compete across five disciplines over seven intense days of competition."
+          title="Five Sports, One Tournament"
+          subtitle="Schools compete across five sports over seven intense days of competition."
           className="mb-12"
         />
 

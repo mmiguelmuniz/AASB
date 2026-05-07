@@ -84,9 +84,37 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
   const cfg      = SPORT_CONFIG[standing.sport]
   const isFutsal = standing.sport.includes('Futsal')
 
-
   return (
     <div className="space-y-8">
+
+            {/* Final Group Standings — Boys Futsal (hardcoded) */}
+      {standing.sport === 'Boys Futsal' && (
+        <FinalGroupStandingsTable
+          title="Final Group Standings"
+          accentColor={cfg.color}
+          rows={[
+            { place: '1st', A: 'PACA',     B: 'Graded A', C: 'EARJ',  D: 'Nations'   },
+            { place: '2nd', A: 'PASB',     B: 'Chapel',   C: 'EAB',   D: "Sant'anna"  },
+            { place: '3rd', A: 'OLM',      B: 'ISC',      C: 'EAC A', D: 'EARJ B'    },
+            { place: '4th', A: 'Graded B', B: 'EAC B',    C: 'EAR',   D: 'EABH'      },
+          ]}
+        />
+      )}
+
+      {/* Final Group Standings — Girls Volleyball (hardcoded) */}
+      {standing.sport === 'Girls Volleyball' && (
+        <FinalGroupStandingsTable
+          title="Final Group Standings"
+          accentColor={cfg.color}
+          rows={[
+            { place: '1st', A: 'EABH',    B: 'ISC Blue', C: 'EARJ A',   D: 'OLM'       },
+            { place: '2nd', A: 'Chapel',  B: 'PASB',     C: "Sant'anna", D: 'PACA'      },
+            { place: '3rd', A: 'EAC',     B: 'Graded A', C: 'Nations',   D: 'EAR'       },
+            { place: '4th', A: 'EAB',     B: 'EARJ B',   C: 'Graded B',  D: 'ISC White' },
+          ]}
+        />
+      )}
+
       {standing.groups.map((group) => (
         <div key={group.group}>
           <div className="flex items-center gap-3 mb-4">
@@ -204,6 +232,55 @@ function StandingRow({ entry, position, isFutsal, accentColor, total, sport }: {
         </>
       )}
     </tr>
+  )
+}
+
+function FinalGroupStandingsTable({ title, accentColor, rows }: {
+  title: string
+  accentColor: string
+  rows: { place: string; A: string; B: string; C: string; D: string }[]
+}) {
+  return (
+    <div className="mb-8">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
+          style={{ background: accentColor }}>🏆</div>
+        <h3 className="font-heading font-bold text-[var(--navy)] text-xl">{title}</h3>
+        <div className="flex-1 h-px bg-[var(--border)]" />
+      </div>
+      <div className="bg-white rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[var(--light)] border-b border-[var(--border)]">
+                <th className="text-left px-4 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider w-20">Place</th>
+                {['A','B','C','D'].map(g => (
+                  <th key={g} className="text-center px-4 py-3 font-heading text-xs text-[var(--muted)] uppercase tracking-wider">
+                    Group {g}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={row.place} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--light)] transition-colors">
+                  <td className="px-4 py-3">
+                    <span className="font-heading font-bold text-sm text-[var(--navy)]">{row.place}</span>
+                  </td>
+                  {['A','B','C','D'].map(g => (
+                    <td key={g} className="px-4 py-3 text-center">
+                      <span className={clsx('font-heading text-sm', i < 2 ? 'font-semibold text-[var(--navy)]' : 'text-[var(--text)]')}>
+                        {i < 2 && row[g as 'A'|'B'|'C'|'D'] ? '⭐ ' : ''}{row[g as 'A'|'B'|'C'|'D'] || '—'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   )
 }
 

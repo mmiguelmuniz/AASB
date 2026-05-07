@@ -44,7 +44,6 @@ export const SCHOOLS: School[] = [
   { id: 'olm',      abbreviation: 'OLM',       name: 'Our Lady of Mercy American School',    city: 'Rio de Janeiro', mascot: 'Lancers',  logoUrl: '/assets/OLM.png' },
   { id: 'paca',     abbreviation: 'PACA',      name: 'Pan American Christian Academy',       city: 'São Paulo',      mascot: 'Warriors', logoUrl: '/assets/PACA.png' },
   { id: 'pasb',     abbreviation: 'PASB',      name: 'Pan American School of Bahia',         city: 'Salvador',       mascot: 'Panthers', logoUrl: '/assets/PASB.png' },
-  { id: 'paspoa',   abbreviation: 'PASPOA',    name: 'Pan American School of Porto Alegre',  city: 'Porto Alegre',   mascot: 'Huskies',  logoUrl: '/assets/PASPOA.png' },
   { id: 'santanna', abbreviation: "SANT'ANNA", name: "Sant'Anna International School",       city: 'São Paulo',      mascot: 'Wolves',   logoUrl: "/assets/Sant'Anna.png" },
 ]
 

@@ -37,7 +37,7 @@ export default function InfoPage() {
               in girls' and boys' soccer, basketball, volleyball, futsal, softball and cheer in an effort to improve
               attitudes toward fair play and friendship. Participation and sportsmanship are to be held in
               the highest regard whereby individual team success is held in a reasonable perspective. All
-              fourteen schools and individual teams are encouraged to provide an active learning
+              thirteen schools and individual teams are encouraged to provide an active learning
               experience for all participants.
             </p>
           </Section>
@@ -57,7 +57,6 @@ export default function InfoPage() {
               <li>Our Lady of Mercy American School - Rio de Janeiro (OLM)</li>
               <li>Pan American Christian Academy (PACA)</li>
               <li>Pan American School of Bahia (PASB) - Escola Pan Americana da Bahia</li>
-              <li>Pan American School of Porto Alegre (PAS POA)</li>
               <li>Sant'Anna International School</li>
               <li>School of the Nations - Escola das Nações (Nations)</li>
             </ol>

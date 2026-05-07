@@ -26,15 +26,10 @@ export function jsonUrl(gid: string): string {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`
 }
 
-/**
- * Fetch a sheet as a 2D array using the JSON endpoint.
- * Much more reliable than CSV for sheets with merged cells or special characters.
- */
 export async function fetchSheetAsRows(gid: string): Promise<string[][]> {
   const res = await fetch(jsonUrl(gid), { cache: 'no-store' })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const raw = await res.text()
-  // Strip the JSONP wrapper: google.visualization.Query.setResponse({...});
   const json = raw.replace(/^[^(]*\(/, '').replace(/\);?\s*$/, '')
   const data = JSON.parse(json)
   const table = data.table
@@ -43,7 +38,6 @@ export async function fetchSheetAsRows(gid: string): Promise<string[][]> {
   return table.rows.map((row: { c: ({ v: unknown; f?: string } | null)[] }) =>
     (row?.c ?? []).map((cell) => {
       if (!cell || cell.v === null || cell.v === undefined) return ''
-      // Use formatted value if available, otherwise raw value
       const val = cell.f ?? cell.v
       return String(val).replace(/\n/g, ' ').trim()
     })
@@ -72,10 +66,11 @@ function resolveDate(raw: string): string | null {
 function resolvePhase(group: string): GamePhase {
   const g = group.toUpperCase().trim()
   if (g.includes('NATIONAL') && g.includes('FINAL')) return 'Final'
+  if (g.includes('3RD PLACE')) return 'Consolation'
+  if (g.includes('CONSOLATION') || g.includes(' CONS') || g.includes('CONS ') || g.startsWith('CONS')) return 'Consolation'
   if (g.includes('FINAL'))        return 'Final'
   if (g.includes('SEMI') || g.includes(' SF')) return 'Semi-Final'
   if (g.includes('QF') || g.includes('QUARTER')) return 'Quarter-Final'
-  if (g.includes('CONSOLATION'))  return 'Consolation'
   if (g.includes('PLAYOFF'))      return 'Playoff'
   return 'Group Stage'
 }
@@ -95,37 +90,19 @@ function isTeam(t: string): boolean {
   return !SKIP.some((w) => u === w || u.startsWith(w + ' '))
 }
 
-/** Convert score string to number or null */
 function toScore(val: string): number | null {
   const n = parseFloat(val)
   return isNaN(n) ? null : n
 }
 
-// ── CSV parser ───────────────────────────────────────
-// Google gviz/tq wraps each line with outer quotes and escapes inner quotes with backslash:
-//   actual line in memory: "\"Group B\",\"\",..."
-//   i.e.: outer-quote + backslash+quote + content + backslash+quote + outer-quote
-//
-// Fix: strip outer quotes + replace every \" with "  -> standard CSV line
 export function parseCsv(raw: string): string[][] {
-  // Normalize line endings
   const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   const lines = normalized.split('\n')
   const rows: string[][] = []
 
   for (const line of lines) {
     if (!line.trim()) continue
-
-    // The gviz endpoint mixes formats:
-    // Format A: "\"field1\",\"field2\"" — whole line wrapped in outer quotes, inner escaped with backslash
-    // Format B: "\"SATURDAY" — partial wrap
-    // Format C: "MAY 2\",\"17:00\"..." — no outer wrap, backslash-escaped quotes
-    // Format D: standard CSV "field1","field2"
-    //
-    // Universal fix: replace every backslash+quote with just quote, then parse as standard CSV
     const normalized_line = line.replace(/\\"/g, '"')
-
-    // Now parse as standard RFC-4180 CSV
     const row: string[] = []
     let field = ''
     let inQ = false
@@ -155,55 +132,34 @@ function c(row: string[], idx: number): string {
   return (row[idx] ?? '').trim()
 }
 
-// ── Main parser ───────────────────────────────────────
-// Column map (0-indexed), confirmed from xlsx inspection:
-//
-// Sport A (Boys Futsal wk1 / Girls Futsal wk2):
-//   Blue Gym → group=2, team1=3, score1=4, score2=6, team2=7
-//   Red Gym  → group=9, team1=10, score1=11, score2=13, team2=14
-//
-// Sport B (Girls Volleyball wk1 / Boys Volleyball wk2):
-//   Court 1  → group=17, team1=18, sets1=23, sets2=25, team2=30
-//   Court 2  → group=32, team1=33, sets1=38, sets2=40, team2=45
-//
-// IMPORTANT: col19 is volleyball TOTAL POINTS (not futsal score!)
-// Never read col19 as a futsal score.
-
-/** Parse schedule from CSV text (kept for reference) */
 export function parseScheduleCsv(csv: string, week: 1 | 2): Game[] {
   return parseScheduleRows(parseCsv(csv), week)
 }
 
-/** Parse schedule directly from a 2D array of strings (from JSON endpoint) */
 export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
   const games: Game[] = []
   let dateA = ''
   let dateB = ''
   let idx   = 0
 
-  // Week 1 (May 2-5): Boys Futsal (Blue/Red Gym) + Girls Volleyball (Court 1/2)
-  // Week 2 (May 5-8): Girls Futsal (Blue/Red Gym) + Boys Volleyball (Court 1/2)
   const sportA: SportName = week === 1 ? 'Boys Futsal'      : 'Girls Futsal'
   const sportB: SportName = week === 1 ? 'Girls Volleyball' : 'Boys Volleyball'
 
   for (const row of rows) {
-    // Track current dates for each half of the sheet
     const dA = resolveDate(c(row, 0))
     if (dA) dateA = dA
     const dB = resolveDate(c(row, 15))
     if (dB) dateB = dB
 
     const timeA = c(row, 1)
-    const timeB = c(row, 16) || c(row, 1)  // col16 for BV, fallback to col1
+    const timeB = c(row, 16) || c(row, 1)
     const okA   = /^\d{1,2}:\d{2}$/.test(timeA)
     const okB   = /^\d{1,2}:\d{2}$/.test(timeB)
 
     // ── Sport A — Blue Gym ────────────────────────────
-    // cols: group=2, team1=3, score1=4, [x=5], score2=6, team2=7
     if (okA && dateA) {
       const g  = c(row, 2)
       const t1 = c(row, 3), t2 = c(row, 7)
-      // Only read score if col5 is 'x' — confirms it's a score row
       const hasX = c(row, 5).toLowerCase() === 'x'
       const s1   = hasX ? toScore(c(row, 4)) : null
       const s2   = hasX ? toScore(c(row, 6)) : null
@@ -218,7 +174,6 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
       }
 
       // ── Sport A — Red Gym ───────────────────────────
-      // cols: group=9, team1=10, score1=11, [x=12], score2=13, team2=14
       const gR   = c(row, 9)
       const t1R  = c(row, 10), t2R = c(row, 14)
       const hasXR = c(row, 12).toLowerCase() === 'x'
@@ -235,9 +190,6 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
       }
     }
 
-    // ── Sport B columns differ by week ───────────────────────────
-    // Week 1 Girls Volleyball: group=17, team1=18, x=24, team2=30 | Court2: group=32, team1=33, x=39, team2=45
-    // Week 2 Boys Volleyball:  team1=17, x=23, team2=29           | Court2: team1=31, x=37, team2=43
     const useDateB = dateB || dateA
     const useTimeB = okB ? timeB : (okA ? timeA : '')
 
@@ -270,13 +222,13 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
         }
       } else {
         // ── Boys Volleyball ───────────────────────────
-        // Confirmed from browser console:
-        // Court 1: time=16, group=17, team1=18, x=24, SETS1=23, SETS2=25, team2=30
-        // Court 2: group=32, team1=33, x=39, SETS1=38, SETS2=40, team2=45
-        const grpC1 = c(row, 17)
-        const t1c1  = c(row, 18), t2c1 = c(row, 30)
-        const hasXc1 = c(row, 24).toLowerCase() === 'x'
-        const sets1c1 = toScore(c(row, 23)), sets2c1 = toScore(c(row, 25))
+        // Updated column map (47 cols, confirmed from browser console May 2026):
+        // Court 1: time=17, group=18, team1=19, x=25, SETS1=24, SETS2=26, team2=31
+        // Court 2: group=33, team1=34, x=40, SETS1=39, SETS2=41, team2=46
+        const grpC1 = c(row, 18)
+        const t1c1  = c(row, 19), t2c1 = c(row, 31)
+        const hasXc1 = c(row, 25).toLowerCase() === 'x'
+        const sets1c1 = toScore(c(row, 24)), sets2c1 = toScore(c(row, 26))
         const hasScoreC1 = hasXc1 && (sets1c1 !== null && sets1c1 > 0 || sets2c1 !== null && sets2c1 > 0)
         if (isTeam(t1c1) && isTeam(t2c1)) {
           games.push({
@@ -288,10 +240,10 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
             score2: hasScoreC1 ? sets2c1 : null,
           })
         }
-        const grpC2 = c(row, 32)
-        const t1c2  = c(row, 33), t2c2 = c(row, 45)
-        const hasXc2 = c(row, 39).toLowerCase() === 'x'
-        const sets1c2 = toScore(c(row, 38)), sets2c2 = toScore(c(row, 40))
+        const grpC2 = c(row, 33)
+        const t1c2  = c(row, 34), t2c2 = c(row, 46)
+        const hasXc2 = c(row, 40).toLowerCase() === 'x'
+        const sets1c2 = toScore(c(row, 39)), sets2c2 = toScore(c(row, 41))
         const hasScoreC2 = hasXc2 && (sets1c2 !== null && sets1c2 > 0 || sets2c2 !== null && sets2c2 > 0)
         if (isTeam(t1c2) && isTeam(t2c2)) {
           games.push({
@@ -307,7 +259,6 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
     }
   }
 
-  // Deduplicate by exact key
   const seen = new Set<string>()
   return games.filter((g) => {
     const k = `${g.date}|${g.time}|${g.sport}|${g.team1}|${g.team2}|${g.venue}`
