@@ -114,16 +114,16 @@ export function parseFutsalCsv(csv: string, sport: SportName): SportStandings {
     }
 
     const anyText = row.map(x => col([x], 0)).join(' ')
-    const groupInLine = anyText.match(/\bGroup\s+([A-D])\b/i)
+    const groupInLine = anyText.match(/\bGroup\s+([A-F])\b/i)
     if (groupInLine) {
       currentGroup = groupInLine[1].toUpperCase()
     }
 
-    if (/^[A-D]$/.test(c0) && /^[A-D]$/.test(c1)) continue
+    if (/^[A-F]$/.test(c0) && /^[A-F]$/.test(c1)) continue
 
     // Separator row: "","SCHOOL",""... → advance to next group
     if (c1.toUpperCase() === 'SCHOOL' && c0 === '') {
-      const letters = ['A','B','C','D']
+      const letters = ['A','B','C','D','E','F']
       const idx = letters.indexOf(currentGroup)
       if (idx >= 0 && idx < letters.length - 1) currentGroup = letters[idx + 1]
       continue
@@ -131,7 +131,7 @@ export function parseFutsalCsv(csv: string, sport: SportName): SportStandings {
 
     // Final Group Standings header: col0="" col1="A" (single letter)
     // This appears after all groups are done — stop reading group data
-    if (c0 === '' && /^[A-D]$/.test(c1)) {
+    if (c0 === '' && /^[A-F]$/.test(c1)) {
       inFinal = true
       continue
     }
@@ -181,7 +181,7 @@ export function parseVolleyballCsv(csv: string, sport: SportName): SportStanding
     const c1 = col(row, 1)
 
     // Format A: "A","GP",... (Boys VB) OR "A","",... (Girls VB)
-    if (/^[A-D]$/i.test(c0) && (c1.toUpperCase() === 'GP' || c1 === '')) {
+    if (/^[A-F]$/i.test(c0) && (c1.toUpperCase() === 'GP' || c1 === '')) {
       currentGroup = c0.toUpperCase()
       continue
     }
@@ -209,8 +209,8 @@ export function parseVolleyballCsv(csv: string, sport: SportName): SportStanding
     if (!c0 || c0.length < 2) continue
     if (/^(boys|girls)\s+volleyball/i.test(c0)) continue
     if (/final\s+(group\s+)?standings/i.test(c0)) continue
-    if (/^[A-D]$/.test(c0) && /^[A-D]$/.test(c1)) continue
-    if (/^[A-D]$/.test(c0)) continue
+    if (/^[A-F]$/.test(c0) && /^[A-F]$/.test(c1)) continue
+    if (/^[A-F]$/.test(c0)) continue
     if (/^Group\s+[A-D]$/i.test(c0)) continue  // group label without GP
     if (c0.toUpperCase() === 'POSITION') continue
     if (c1.toUpperCase() === 'GP') continue  // any remaining header rows
