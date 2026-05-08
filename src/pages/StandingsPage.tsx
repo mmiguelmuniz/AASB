@@ -115,6 +115,59 @@ function SportStandingsView({ standing }: { standing: SportStandings }) {
         />
       )}
 
+      {/* Final Group Standings — Boys Volleyball (hardcoded) */}
+      {standing.sport === 'Boys Volleyball' && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
+              style={{ background: cfg.color }}>🏆</div>
+            <h3 className="font-heading font-bold text-[var(--navy)] text-xl">Final Group Standings</h3>
+            <div className="flex-1 h-px bg-[var(--border)]" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {([
+              { label: 'Group A', entries: [
+                { place: '1st', school: 'EARJ' },
+                { place: '2nd', school: 'EAB' },
+                { place: '3rd', school: "Sant'anna" },
+                { place: '4th', school: 'OLM' },
+              ]},
+              { label: 'Group B', entries: [
+                { place: '1st', school: 'Graded' },
+                { place: '2nd', school: 'PACA' },
+                { place: '3rd', school: 'EABH' },
+                { place: '4th', school: 'EAC' },
+              ]},
+            ] as const).map((grp) => (
+              <div key={grp.label} className="bg-white rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--light)]">
+                  <span className="font-heading font-bold text-[var(--navy)] text-sm uppercase tracking-wider">{grp.label}</span>
+                </div>
+                <table className="w-full text-sm">
+                  <tbody>
+                    {grp.entries.map((row, i) => (
+                      <tr key={row.school} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--light)] transition-colors">
+                        <td className="px-4 py-3 w-16">
+                          <span className="font-heading text-xs font-bold px-2 py-0.5 rounded-full"
+                            style={i < 2 ? { background: cfg.color, color: 'white' } : { background: 'var(--light)', color: 'var(--muted)' }}>
+                            {row.place}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className={clsx('font-heading font-semibold', i < 2 ? 'text-[var(--navy)]' : 'text-[var(--text)]')}>
+                            {i < 2 ? '⭐ ' : ''}{row.school}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {standing.groups.map((group) => (
         <div key={group.group}>
           <div className="flex items-center gap-3 mb-4">

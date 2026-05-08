@@ -186,10 +186,16 @@ export function parseVolleyballCsv(csv: string, sport: SportName): SportStanding
       continue
     }
 
-    // Format B: "Group A","GP",...
+    // Format B: "Group A","GP",... OR "Group A" alone
     const grpMatch = c0.match(/^Group\s+([A-D])$/i)
-    if (grpMatch && c1.toUpperCase() === 'GP') {
+    if (grpMatch) {
       currentGroup = grpMatch[1].toUpperCase()
+      continue
+    }
+    // Format C: group label anywhere in the row
+    const grpAny = row.map((cell: string) => cell.trim()).join(' ').match(/\bGroup\s+([A-D])\b/i)
+    if (grpAny && row.some((cell: string) => cell.trim().toUpperCase() === 'GP')) {
+      currentGroup = grpAny[1].toUpperCase()
       continue
     }
 
