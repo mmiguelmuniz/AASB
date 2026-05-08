@@ -222,13 +222,13 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
         }
       } else {
         // ── Boys Volleyball ───────────────────────────
-        // Updated column map (47 cols, confirmed from browser console May 2026):
-        // Court 1: time=17, group=18, team1=19, x=25, SETS1=24, SETS2=26, team2=31
-        // Court 2: group=33, team1=34, x=40, SETS1=39, SETS2=41, team2=46
-        const grpC1 = c(row, 18)
-        const t1c1  = c(row, 19), t2c1 = c(row, 31)
-        const hasXc1 = c(row, 25).toLowerCase() === 'x'
-        const sets1c1 = toScore(c(row, 24)), sets2c1 = toScore(c(row, 26))
+        // Column map confirmed from live sheet (cols relative to full row):
+        // Court 1: date=15, time=16, group=17, team1=18, PF=19-21, sets1=23, x=24, sets2=25, PC=26-28, team2=30
+        // Court 2: group=32, team1=33, PF=34-36, sets1=38, x=39, sets2=40, PC=41-43, team2=45
+        const grpC1 = c(row, 17)
+        const t1c1  = c(row, 18), t2c1 = c(row, 30)
+        const hasXc1 = c(row, 24).toLowerCase() === 'x'
+        const sets1c1 = toScore(c(row, 23)), sets2c1 = toScore(c(row, 25))
         const hasScoreC1 = hasXc1 && (sets1c1 !== null && sets1c1 > 0 || sets2c1 !== null && sets2c1 > 0)
         if (isTeam(t1c1) && isTeam(t2c1)) {
           games.push({
@@ -240,10 +240,10 @@ export function parseScheduleRows(rows: string[][], week: 1 | 2): Game[] {
             score2: hasScoreC1 ? sets2c1 : null,
           })
         }
-        const grpC2 = c(row, 33)
-        const t1c2  = c(row, 34), t2c2 = c(row, 46)
-        const hasXc2 = c(row, 40).toLowerCase() === 'x'
-        const sets1c2 = toScore(c(row, 39)), sets2c2 = toScore(c(row, 41))
+        const grpC2 = c(row, 32)
+        const t1c2  = c(row, 33), t2c2 = c(row, 45)
+        const hasXc2 = c(row, 39).toLowerCase() === 'x'
+        const sets1c2 = toScore(c(row, 38)), sets2c2 = toScore(c(row, 40))
         const hasScoreC2 = hasXc2 && (sets1c2 !== null && sets1c2 > 0 || sets2c2 !== null && sets2c2 > 0)
         if (isTeam(t1c2) && isTeam(t2c2)) {
           games.push({
